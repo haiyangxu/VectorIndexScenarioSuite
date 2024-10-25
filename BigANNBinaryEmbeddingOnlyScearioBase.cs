@@ -38,7 +38,7 @@ namespace VectorIndexScenarioSuite
         protected abstract string EmbeddingPath { get; }
         protected abstract VectorDataType EmbeddingDataType { get; }
         protected abstract DistanceFunction EmbeddingDistanceFunction { get; }
-        protected abstract ulong EmbeddingDimensions { get; }
+        protected abstract int EmbeddingDimensions { get; }
         protected abstract int MaxPhysicalPartitionCount { get; }
         protected abstract string RunName { get; }
         protected static Guid guid = Guid.NewGuid();
@@ -268,8 +268,13 @@ namespace VectorIndexScenarioSuite
                                 // Similarly, QueryMetrics is null for second and subsequent pages of query results.
                                 if (queryResponse.Diagnostics.GetQueryMetrics() != null)
                                 {
-                                    this.queryMetrics[KVal].AddServerLatencyMeasurement(
-                                        queryResponse.Diagnostics.GetQueryMetrics().CumulativeMetrics.TotalTime.TotalMilliseconds);
+                                    foreach (var serverMetrics in queryResponse.Diagnostics.GetQueryMetrics().PartitionedMetrics)
+                                    {
+                                        this.queryMetrics[KVal].AddServerLatencyMeasurement(serverMetrics.ServerSideMetrics.TotalTime.TotalMilliseconds);
+                                    }
+
+                                    //this.queryMetrics[KVal].AddServerLatencyMeasurement(
+                                    //    queryResponse.Diagnostics.GetQueryMetrics().CumulativeMetrics.TotalTime.TotalMilliseconds);
                                 }
                             }
                         }
@@ -364,6 +369,11 @@ namespace VectorIndexScenarioSuite
                 }
 
                 int totalQueryVectors = BigANNBinaryFormat.GetBinaryDataHeader(GetQueryDataPath()).Item1;
+                int numQueries = Convert.ToInt32(this.Configurations["AppSettings:scenario:numQueries"]);
+                if (numQueries < totalQueryVectors)
+                {
+                    totalQueryVectors = numQueries;
+                }
                 for (int kI = 0; kI < K_VALS.Length; kI++)
                 {
                     Console.WriteLine($"Performing {totalQueryVectors} queries for Recall/RU/Latency stats for K: {K_VALS[kI]}.");

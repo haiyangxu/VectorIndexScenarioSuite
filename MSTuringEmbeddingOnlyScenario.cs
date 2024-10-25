@@ -13,7 +13,7 @@ namespace VectorIndexScenarioSuite
         protected override string EmbeddingPath => $"/{EmbeddingColumn}";
         protected override VectorDataType EmbeddingDataType => VectorDataType.Float32;
         protected override DistanceFunction EmbeddingDistanceFunction => DistanceFunction.Euclidean;
-        protected override ulong EmbeddingDimensions => 100;
+        protected override int EmbeddingDimensions => 100;
         protected override int MaxPhysicalPartitionCount => 56;
         protected override string RunName => "msturing-embeddingonly-" + guid;
 
@@ -40,6 +40,8 @@ namespace VectorIndexScenarioSuite
                     return (12000, 20000);
                 case ONE_HUNDRED_MILLION:
                     return (48000, 80000);
+                case ONE_BILLION:
+                    return (150000, 300000);
                 default:
                     throw new ArgumentException("Invalid slice count.");
             }

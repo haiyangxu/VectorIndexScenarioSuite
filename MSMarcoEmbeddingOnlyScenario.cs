@@ -1,5 +1,6 @@
 ﻿using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Configuration;
+using System.Collections.ObjectModel;
 namespace VectorIndexScenarioSuite
 { 
     internal class MSMarcoEmbeddingOnlyScenario : BigANNBinaryEmbeddingOnlyScearioBase
@@ -13,7 +14,7 @@ namespace VectorIndexScenarioSuite
         protected override string EmbeddingPath => $"/{EmbeddingColumn}";
         protected override VectorDataType EmbeddingDataType => VectorDataType.Float32;
         protected override DistanceFunction EmbeddingDistanceFunction => DistanceFunction.DotProduct;
-        protected override ulong EmbeddingDimensions => 768;
+        protected override int EmbeddingDimensions => 768;
         protected override int MaxPhysicalPartitionCount => 56;
         protected override string RunName => "msmarco-embeddingonly-" + guid;
 
@@ -26,7 +27,41 @@ namespace VectorIndexScenarioSuite
         {
             this.ReplaceFinalThroughput(DefaultInitialAndFinalThroughput(this.Configurations).Item2);
         }
+        protected override ContainerProperties GetContainerSpec(string containerName)
+        {
+            ContainerProperties properties = new ContainerProperties(id: containerName, partitionKeyPath: this.PartitionKeyPath)
+            {
+                VectorEmbeddingPolicy = new VectorEmbeddingPolicy(new Collection<Embedding>(new List<Embedding>()
+                {
+                    new Embedding()
+                    {
+                        Path = this.EmbeddingPath,
+                        DataType = this.EmbeddingDataType,
+                        DistanceFunction = this.EmbeddingDistanceFunction,
+                        Dimensions = this.EmbeddingDimensions,
+                    }
+                })),
+                IndexingPolicy = new IndexingPolicy()
+                {
+                    VectorIndexes = new()
+                    {
+                        new VectorIndexPath()
+                        {
+                            Path = this.EmbeddingPath,
+                            Type = VectorIndexType.DiskANN,
+                            QuantizationByteSize = 192,
+                        }
+                    }
+                }
+            };
 
+            properties.IndexingPolicy.IncludedPaths.Add(new IncludedPath { Path = "/" });
+
+            // Add EMBEDDING_PATH to excluded paths for scalar indexing.
+            properties.IndexingPolicy.ExcludedPaths.Add(new ExcludedPath { Path = this.EmbeddingPath + "/*" });
+
+            return properties;
+        }
         private static (int, int) DefaultInitialAndFinalThroughput(IConfiguration configurations)
         {
             // default throughput for MSMarcoEmbeddingOnlyScenario
