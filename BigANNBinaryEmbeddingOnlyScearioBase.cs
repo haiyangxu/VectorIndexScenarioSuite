@@ -147,6 +147,8 @@ namespace VectorIndexScenarioSuite
             string logFilePath = Path.Combine(errorLogBasePath, $"{this.RunName}-ingest.log");
 
             int totalVectorsIngested = 0;
+            // debug
+            //startVectorId = 471865036;
             await foreach ((int vectorId, float[] vector) in BigANNBinaryFormat.GetBinaryDataAsync(GetBaseDataPath(), BinaryDataType.Float32, startVectorId, numVectorsToIngest))
             {
                 var createTask = CreateIngestionOperationTask(ingestionOperationType, vectorId, vector).ContinueWith(async itemResponse =>
@@ -313,7 +315,7 @@ namespace VectorIndexScenarioSuite
         {
             string directory = this.Configurations["AppSettings:dataFilesBasePath"] ?? 
                 throw new ArgumentNullException("AppSettings:dataFilesBasePath");
-            string fileName = $"{this.GetGroundTruthFileName}_{this.SliceCount}";
+            string fileName = $"{this.GetGroundTruthFileName}_{this.SliceCount}.{this.BinaryFileExt}";
             return Path.Combine(directory, fileName);
         }
 

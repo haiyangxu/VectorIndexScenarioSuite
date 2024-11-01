@@ -7,7 +7,7 @@
 
     internal class GroundTruthValidator
     {
-        private IDictionary<string, List<IdWithSimilarityScore>> groundTruth; 
+        private IDictionary<string, List<IdWithSimilarityScore>> groundTruth;
         private int groundTruthKValue;
 
         public GroundTruthValidator(GroundTruthFileType fileType, string filePath)
@@ -26,17 +26,23 @@
             float recall = 0;
             HashSet<string> groundTruthIdsForQuery = new HashSet<string>();
             HashSet<string> resultIdsForQuery = new HashSet<string>();
+            List<double> similarityScoreFromQuery = new List<double>();
 
             int cumulativeTruePositive = 0;
             var queryIds = queryResults.Keys;
-            foreach(string queryId in queryResults.Keys)
+            foreach (string queryId in queryResults.Keys)
             {
                 groundTruthIdsForQuery.Clear();
                 resultIdsForQuery.Clear();
 
-                for(int i = 0; i < queryKValue; i++)
+                for (int i = 0; i < queryKValue; i++)
                 {
                     resultIdsForQuery.Add(queryResults[queryId][i].Id);
+                }
+
+                for (int i = 0; i < queryKValue; i++)
+                {
+                    similarityScoreFromQuery.Add(queryResults[queryId][i].SimilarityScore);
                 }
 
                 /* Compute valid ground truth ids for the query 
@@ -53,10 +59,30 @@
                     groundTruthIdsForQuery.Add(this.groundTruth[queryId][i].Id);
                 }
 
-                int truePositive = 0;
-                foreach(string queryResultId in resultIdsForQuery)
+                //Print the ground truth ids for the query
+                Console.WriteLine();
+                Console.WriteLine($"Ground truth ids and distances for query {queryId}: ");
+                int idx = 0;
+                foreach (string id in groundTruthIdsForQuery)
                 {
-                    if(groundTruthIdsForQuery.Contains(queryResultId))
+                    Console.Write(id + "->" + this.groundTruth[queryId][idx].SimilarityScore + ", ");
+                    idx++;
+                }
+
+                //Print the result ids for the query
+                Console.WriteLine();
+                Console.WriteLine($"Result ids for query {queryId}: ");
+                int idx2 = 0;
+                foreach (string id in resultIdsForQuery)
+                {
+                    Console.Write(id + "->" + similarityScoreFromQuery[idx2] + ", ");
+                    idx2++;
+                }
+
+                int truePositive = 0;
+                foreach (string queryResultId in resultIdsForQuery)
+                {
+                    if (groundTruthIdsForQuery.Contains(queryResultId))
                     {
                         cumulativeTruePositive++;
                         truePositive++;
@@ -75,7 +101,7 @@
 
         private void LoadGroundTruthData(GroundTruthFileType fileType, string filePath)
         {
-            switch(fileType)
+            switch (fileType)
             {
                 case GroundTruthFileType.Binary:
                     LoadGroundTruthDataFromBinaryFile(filePath).Wait();
@@ -100,7 +126,7 @@
                 }
                 else if (this.groundTruthKValue != groundTruthNeighborIds.Length)
                 {
-                   Console.WriteLine($"Ground truth K value mismatch for vectorId: {vectorId}");
+                    Console.WriteLine($"Ground truth K value mismatch for vectorId: {vectorId}");
                 }
 
                 this.groundTruth.Add(vectorId.ToString(), idWithSimilarityScores);

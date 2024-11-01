@@ -50,6 +50,8 @@ namespace VectorIndexScenarioSuite
                             Path = this.EmbeddingPath,
                             Type = VectorIndexType.DiskANN,
                             QuantizationByteSize = 192,
+                            IndexingSearchListSize = 100,
+
                         }
                     }
                 }
