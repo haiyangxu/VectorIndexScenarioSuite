@@ -1,4 +1,5 @@
-﻿using Microsoft.Azure.Cosmos;
+﻿using Azure;
+using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using System.Collections.Concurrent;
@@ -212,6 +213,9 @@ namespace VectorIndexScenarioSuite
 
         protected async Task PerformQuery(bool isWarmup, int numQueries, int KVal, string dataPath)
         {
+            bool computeLatencyAndRUStats = Convert.ToBoolean(this.Configurations["AppSettings:scenario:computeLatencyAndRUStats"]);
+            double highlatencyRequestThreshold = Convert.ToDouble(this.Configurations["AppSettings:scenario:highlatencyRequestThreshold"]);
+
             // Issue parallel queries to all partitions, capping this to MAX_PHYSICAL_PARTITION_COUNT but can be override through config.
             int overrideMaxConcurrancy = Convert.ToInt32(this.Configurations["AppSettings:scenario:MaxPhysicalPartitionCount"]);
             int maxConcurrancy = overrideMaxConcurrancy == 0 ? this.MaxPhysicalPartitionCount : overrideMaxConcurrancy;
@@ -225,7 +229,7 @@ namespace VectorIndexScenarioSuite
                 {
                     FeedIterator<IdWithSimilarityScore> queryResultSetIterator =
                         this.CosmosContainerForQuery.GetItemQueryIterator<IdWithSimilarityScore>(queryDefinition,
-                requestOptions: new QueryRequestOptions { MaxConcurrency = maxConcurrancy });
+                requestOptions: new QueryRequestOptions { MaxConcurrency = maxConcurrancy, MaxItemCount = -1, MaxBufferedItemCount= -1,});
 
                     retryQueryOnFailureForLatencyMeasurement = false;
                     while (queryResultSetIterator.HasMoreResults)
@@ -235,7 +239,6 @@ namespace VectorIndexScenarioSuite
                         if (!isWarmup)
                         {
                             // If we are computing latency and RU stats, don't consider any query with failed requests (implies it was throttled).
-                            bool computeLatencyAndRUStats = Convert.ToBoolean(this.Configurations["AppSettings:scenario:computeLatencyAndRUStats"]);
                             if (computeLatencyAndRUStats && queryResponse.Diagnostics.GetFailedRequestCount() > 0)
                             {
                                 Console.WriteLine($"Retrying for vectorId : {vectorId}.");
@@ -253,6 +256,15 @@ namespace VectorIndexScenarioSuite
                                         queryResponse.RequestCharge);
                                     this.queryMetrics[KVal].AddClientLatencyMeasurement(
                                         queryResponse.Diagnostics.GetClientElapsedTime().TotalMilliseconds);
+
+                                    if (queryResponse.Diagnostics.GetClientElapsedTime().TotalMicroseconds > highlatencyRequestThreshold)
+                                    {
+                                        // Log the response.Diagnostics.ToString() and add any additional info necessary to correlate to other logs 
+                                        using (StreamWriter writer = new StreamWriter($"client_diagnostics_vector_{vectorId}.json"))
+                                        {
+                                            await writer.WriteLineAsync($"{queryResponse.Diagnostics.ToString()}");
+                                        }
+                                    }
                                 }
 
                                 if (!this.queryRecallResults[KVal].ContainsKey(vectorId.ToString()))
