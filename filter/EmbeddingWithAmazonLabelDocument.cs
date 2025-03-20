@@ -15,6 +15,7 @@ namespace VectorIndexScenarioSuite.filter
         [JsonProperty(PropertyName = "category")]
         private string[] Category { get; }
 
+        [JsonConstructor]
         public EmbeddingWithAmazonLabelDocument(string id, float[] embedding, string brand, string rating, string[] category)
             : base(id, embedding) // Call the base class constructor
         {

@@ -6,7 +6,10 @@
         {
             var result = new Dictionary<string, object>();
             var parts = line.Split(',');
-
+            result["year"] = string.Empty;
+            result["month"] = string.Empty;
+            result["model"] = string.Empty;
+            result["country"] = string.Empty;
             foreach (var part in parts)
             {
                 var keyValue = part.Split('=');

@@ -5,7 +5,7 @@ namespace VectorIndexScenarioSuite
     internal class YFCCScenario : BigANNBinaryEmbeddingOnlyScearioBase
     {
         protected override string BaseDataFile => "base";
-        protected override string BinaryFileExt => "fbin";
+        protected override string BinaryFileExt => "u8bin";
         protected override string QueryFile => "query";
         protected override string GetGroundTruthFileName => "ground_truth";
         protected override string PartitionKeyPath => "/id";

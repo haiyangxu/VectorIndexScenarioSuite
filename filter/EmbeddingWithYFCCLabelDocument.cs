@@ -16,6 +16,7 @@ namespace VectorIndexScenarioSuite.filter
         [JsonProperty(PropertyName = "country")]
         private string Country { get; }
 
+        [JsonConstructor]
         public EmbeddingWithYFCCLabelDocument(string id, float[] embedding, string year, string month, string model, string country)
             : base(id, embedding) // Call the base class constructor
         {
