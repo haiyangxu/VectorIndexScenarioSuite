@@ -1,12 +1,11 @@
-﻿namespace VectorIndexScenarioSuite
+﻿namespace VectorIndexScenarioSuite.filter
 {
-    internal static class AmazonLabelParser
+    internal static class YFCCLabelParser
     {
         public static Dictionary<string, object> ParseLineToJson(string line)
         {
             var result = new Dictionary<string, object>();
             var parts = line.Split(',');
-            result["category"] = new List<string>();
 
             foreach (var part in parts)
             {
@@ -16,21 +15,21 @@
                     var key = keyValue[0];
                     var value = keyValue[1];
 
-                    if (key == "CAT")
+                    if (key == "year")
                     {
-                        if (!result.ContainsKey("category"))
-                        {
-                            result["category"] = new List<string>();
-                        }
-                        ((List<string>)result["category"]).Add(value);
+                        result["year"] = value;
                     }
-                    else if (key == "BRAND")
+                    else if (key == "month")
                     {
-                        result["brand"] = value;
+                        result["month"] = value;
                     }
-                    else if (key == "RATING")
+                    else if (key == "model")
                     {
-                        result["rating"] = value;
+                        result["model"] = value;
+                    }
+                    else if (key == "country")
+                    {
+                        result["country"] = value;
                     }
                 }
             }

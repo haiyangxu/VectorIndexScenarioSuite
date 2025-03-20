@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace VectorIndexScenarioSuite
+namespace VectorIndexScenarioSuite.filter
 {
     internal class EmbeddingWithAmazonLabelDocument : EmbeddingOnlyDocument
     {
@@ -18,9 +18,17 @@ namespace VectorIndexScenarioSuite
         public EmbeddingWithAmazonLabelDocument(string id, float[] embedding, string brand, string rating, string[] category)
             : base(id, embedding) // Call the base class constructor
         {
-            this.Brand = brand;
-            this.Rating = rating;
-            this.Category = category;
+            Brand = brand;
+            Rating = rating;
+            Category = category;
+        }
+
+        public EmbeddingWithAmazonLabelDocument(string id, float[] embedding, Dictionary<string, object> amazonLabel)
+            : base(id, embedding) // Call the base class constructor
+        {
+            Brand = amazonLabel["brand"].ToString();
+            Rating = amazonLabel["rating"].ToString();
+            Category = ((List<object>)amazonLabel["category"]).Select(x => x.ToString()).ToArray();
         }
     }
 }

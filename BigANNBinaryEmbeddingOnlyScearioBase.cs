@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
+using VectorIndexScenarioSuite.filter;
 
 namespace VectorIndexScenarioSuite
 {
@@ -131,12 +132,9 @@ namespace VectorIndexScenarioSuite
             int totalVectorsIngested = 0;
             await foreach ((int vectorId, float[] vector, string label ) in BigANNBinaryFormat.GetBinaryDataWithLabelAsync(GetBaseDataPath(), BinaryDataType.Float32, startVectorId, numVectorsToIngest))
             {
-                var labelJson = AmazonLabelParser.ParseLineToJson(label);
-                string brand = labelJson["brand"]?.ToString() ?? string.Empty;
-                string rating = labelJson["rating"]?.ToString() ?? string.Empty;
-                var category = ((List<string>?)labelJson["category"])?.ToArray() ?? Array.Empty<string>();
+                var labelJson = YFCCLabelParser.ParseLineToJson(label);
 
-                var document = new EmbeddingWithAmazonLabelDocument(vectorId.ToString(), vector,brand, rating,category);
+                var document = new EmbeddingWithYFCCLabelDocument(vectorId.ToString(), vector, labelJson);
 
                 var createTask = CreateIngestionOperationTask(ingestionOperationType,document).ContinueWith(async itemResponse =>
                 {
@@ -177,15 +175,15 @@ namespace VectorIndexScenarioSuite
             }
         }
 
-        private Task<ItemResponse<EmbeddingWithAmazonLabelDocument>> CreateIngestionOperationTask(IngestionOperationType ingestionOperationType, EmbeddingWithAmazonLabelDocument document)
+        private Task<ItemResponse<EmbeddingWithYFCCLabelDocument>> CreateIngestionOperationTask(IngestionOperationType ingestionOperationType, EmbeddingWithYFCCLabelDocument document)
         {
              switch (ingestionOperationType)
             {
                 case IngestionOperationType.Insert:
-                        return this.CosmosContainerWithBulkClient.CreateItemAsync<EmbeddingWithAmazonLabelDocument>(
+                        return this.CosmosContainerWithBulkClient.CreateItemAsync<EmbeddingWithYFCCLabelDocument>(
                         document, new PartitionKey(document.Id));
                 case IngestionOperationType.Delete:
-                    return this.CosmosContainerWithBulkClient.DeleteItemAsync<EmbeddingWithAmazonLabelDocument>(
+                    return this.CosmosContainerWithBulkClient.DeleteItemAsync<EmbeddingWithYFCCLabelDocument>(
                         document.Id, new PartitionKey(document.Id));
                 case IngestionOperationType.Replace:
                     // This needs APIs to be further enhanced before we support it.
@@ -204,7 +202,7 @@ namespace VectorIndexScenarioSuite
             await foreach ((int vectorId, float[] vector, string label) in 
                 BigANNBinaryFormat.GetBinaryDataWithLabelAsync(dataPath, BinaryDataType.Float32, 0 /* startVectorId */, numQueries))
             {
-                string where = QueryParser.ToWhereStatement(QueryParser.FromQuery(label));
+                string where = YFCCQueryParser.ToWhereStatement(YFCCQueryParser.FromQuery(label));
                 var queryDefinition = ConstructQueryDefinition(KVal, vector, where);
 
                 bool retryQueryOnFailureForLatencyMeasurement;
@@ -284,7 +282,7 @@ namespace VectorIndexScenarioSuite
 
         private QueryDefinition ConstructQueryDefinition(int K, float[] queryVector, string where)
         {
-            string obj_expr = "{'searchListSizeMultiplier': 25}";
+            string obj_expr = "{'searchListSizeMultiplier': 20}";
             string queryText = $"SELECT TOP {K} c.id, VectorDistance(c.{this.EmbeddingColumn}, @vectorEmbedding, false) AS similarityScore " +
                 $"FROM c  WHERE {where} ORDER BY VectorDistance(c.{this.EmbeddingColumn}, @vectorEmbedding, false, {obj_expr})";
 ;

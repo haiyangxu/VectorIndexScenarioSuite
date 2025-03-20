@@ -1,12 +1,10 @@
-﻿
-
-namespace VectorIndexScenarioSuite
+﻿namespace VectorIndexScenarioSuite.filter
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
 
-    public static class QueryParser
+    public static class AmazonQueryParser
     {
         // Function to create query_clause from query label
         public static List<List<string>> FromQuery(string queryLabel)
@@ -54,7 +52,7 @@ namespace VectorIndexScenarioSuite
                         {
                             orStatements.Add($"c.rating = \"{value}\"");
                         }
-                        else if (field=="BRAND")
+                        else if (field == "BRAND")
                         {
                             orStatements.Add($"c.brand = \"{value}\"");
                         }

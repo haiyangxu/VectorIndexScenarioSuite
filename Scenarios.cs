@@ -3,6 +3,7 @@
     internal enum Scenarios
     {
         Amazon,
+        YFCC,
         MSMarcoEmbeddingOnly,
         MSTuringEmbeddingOnly,
         WikiCohereEnglishEmbeddingOnly,
@@ -18,6 +19,8 @@
             {
                 case "amazon":
                     return Scenarios.Amazon;
+                case "yfcc":
+                    return Scenarios.YFCC;  
                 case "ms-marco-embedding-only":
                     return Scenarios.MSMarcoEmbeddingOnly;
                 case "ms-turing-embedding-only":

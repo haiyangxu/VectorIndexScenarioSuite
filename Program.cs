@@ -66,6 +66,8 @@ namespace VectorIndexScenarioSuite
             {
                 case Scenarios.Amazon:
                     return new AmazonScenario(configurations);
+                case Scenarios.YFCC:
+                    return new YFCCScenario(configurations);
                 case Scenarios.MSMarcoEmbeddingOnly:
                     return new MSMarcoEmbeddingOnlyScenario(configurations);
                 case Scenarios.MSTuringEmbeddingOnly:
