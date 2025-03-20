@@ -1,6 +1,6 @@
 ﻿namespace VectorIndexScenarioSuite
 {
-    internal static class LabelParser
+    internal static class AmazonLabelParser
     {
         public static Dictionary<string, object> ParseLineToJson(string line)
         {

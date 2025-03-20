@@ -131,7 +131,7 @@ namespace VectorIndexScenarioSuite
             int totalVectorsIngested = 0;
             await foreach ((int vectorId, float[] vector, string label ) in BigANNBinaryFormat.GetBinaryDataWithLabelAsync(GetBaseDataPath(), BinaryDataType.Float32, startVectorId, numVectorsToIngest))
             {
-                var labelJson = LabelParser.ParseLineToJson(label);
+                var labelJson = AmazonLabelParser.ParseLineToJson(label);
                 string brand = labelJson["brand"]?.ToString() ?? string.Empty;
                 string rating = labelJson["rating"]?.ToString() ?? string.Empty;
                 var category = ((List<string>?)labelJson["category"])?.ToArray() ?? Array.Empty<string>();
