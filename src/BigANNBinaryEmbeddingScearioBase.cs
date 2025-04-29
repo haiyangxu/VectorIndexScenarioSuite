@@ -82,7 +82,7 @@ namespace VectorIndexScenarioSuite
                         new VectorIndexPath()
                         {
                             Path = this.EmbeddingPath,
-                            Type = VectorIndexType.DiskANN,
+                            Type = VectorIndexType.Flat,
                             // TODO: not supported configuration, need to update the SDK to support it
                             // VectorIndexShardKey = ["/brand"],
                             // IndexingSearchListSize = 100,
@@ -360,7 +360,7 @@ JsonDocumentFactory.GetQueryAsync(dataPath, BinaryDataType.Float32, 0 /* startVe
 
             if(runIngestion) 
             {
-                int totalVectors = Convert.ToInt32(this.Configurations["AppSettings:scenario:sliceCount"]);
+                int totalVectors = Convert.ToInt32(this.Configurations["AppSettings:scenario:qflatsize"]); // for qflat ingestion test
                 int startVectorId = Convert.ToInt32(this.Configurations["AppSettings:scenario:startVectorId"]);
                 await PerformIngestion(IngestionOperationType.Insert, null /* startTagId */, startVectorId /* startVectorId */, totalVectors);
             }
