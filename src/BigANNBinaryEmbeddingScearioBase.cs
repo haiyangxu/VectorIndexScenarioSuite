@@ -82,7 +82,7 @@ namespace VectorIndexScenarioSuite
                         new VectorIndexPath()
                         {
                             Path = this.EmbeddingPath,
-                            Type = VectorIndexType.Flat,
+                            Type = VectorIndexType.QuantizedFlat,
                             // TODO: not supported configuration, need to update the SDK to support it
                             // VectorIndexShardKey = ["/brand"],
                             // IndexingSearchListSize = 100,
