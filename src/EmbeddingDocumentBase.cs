@@ -22,7 +22,7 @@ namespace VectorIndexScenarioSuite
             this.Id = id;
             this.Embedding = embedding;
             this.Ranking = uint.Parse(id);
-            this.Pct = uint.Parse(id) % 10000;
+            this.Pct = uint.Parse(id) % 100;
         }
     }
 }
