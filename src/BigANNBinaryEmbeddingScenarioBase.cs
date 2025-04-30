@@ -92,7 +92,12 @@ namespace VectorIndexScenarioSuite
                 {
                     VectorIndexes = new()
                     {
-                        vectorIndexPath
+                        new VectorIndexPath()
+                        {
+                            Path = this.EmbeddingPath,
+                            Type = VectorIndexType.Flat,
+
+                        }
                     }
                 }
             };
@@ -367,7 +372,7 @@ JsonDocumentFactory.GetQueryAsync(dataPath, BinaryDataType.Float32, 0 /* startVe
 
             if(runIngestion) 
             {
-                int totalVectors = Convert.ToInt32(this.Configurations["AppSettings:scenario:sliceCount"]);
+                int totalVectors = Convert.ToInt32(this.Configurations["AppSettings:scenario:qflatsize"]); // for qflat ingestion test
                 int startVectorId = Convert.ToInt32(this.Configurations["AppSettings:scenario:startVectorId"]);
                 await PerformIngestion(IngestionOperationType.Insert, null /* startTagId */, startVectorId /* startVectorId */, totalVectors);
             }
