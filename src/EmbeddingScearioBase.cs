@@ -63,6 +63,26 @@ namespace VectorIndexScenarioSuite
 
         protected override ContainerProperties GetContainerSpec(string containerName)
         {
+
+            string vectorIndexTypeString = this.Configurations["AppSettings:scenario:vectorIndexType"];
+            if (Enum.TryParse(vectorIndexTypeString, ignoreCase: true, out VectorIndexType vectorIndexType))
+            {
+                Console.WriteLine($"VectorIndexType: {vectorIndexType}");
+            }
+            else
+            {
+                Console.WriteLine("Available VectorIndexType options:");
+                foreach (var value in Enum.GetValues(typeof(VectorIndexType)))
+                {
+                    Console.WriteLine($"- {value}");
+                }
+
+                throw new ArgumentException("VectorIndexType invalid!");
+
+            }
+
+
+
             ContainerProperties properties = new ContainerProperties(id: containerName, partitionKeyPath: this.PartitionKeyPath)
             {
                 VectorEmbeddingPolicy = new VectorEmbeddingPolicy(new Collection<Embedding>(new List<Embedding>()
@@ -82,10 +102,7 @@ namespace VectorIndexScenarioSuite
                         new VectorIndexPath()
                         {
                             Path = this.EmbeddingPath,
-                            Type = VectorIndexType.DiskANN,
-                            // TODO: not supported configuration, need to update the SDK to support it
-                            // VectorIndexShardKey = ["/brand"],
-                            // IndexingSearchListSize = 100,
+                            Type = vectorIndexType,
                         }
                     }
                 }
@@ -367,7 +384,7 @@ namespace VectorIndexScenarioSuite
 
             if(runIngestion) 
             {
-                int totalVectors = Convert.ToInt32(this.Configurations["AppSettings:scenario:sliceCount"]);
+                int totalVectors = Convert.ToInt32(this.Configurations["AppSettings:scenario:qflatsize"]); // for qflat ingestion test
                 int startVectorId = Convert.ToInt32(this.Configurations["AppSettings:scenario:startVectorId"]);
                 await PerformIngestion(IngestionOperationType.Insert, null /* startTagId */, startVectorId /* startVectorId */, totalVectors);
             }

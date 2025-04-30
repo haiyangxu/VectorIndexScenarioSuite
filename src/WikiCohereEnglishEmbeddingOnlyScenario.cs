@@ -35,7 +35,7 @@ namespace VectorIndexScenarioSuite
                 case ONE_MILLION:
                     return (400, 10000);
                 case THIRTY_FIVE_MILLION:
-                    return (40000, 70000);
+                    return (6000, 10000);
                 default:
                     throw new ArgumentException("Invalid slice count.");
             }
