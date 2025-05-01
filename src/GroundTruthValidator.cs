@@ -28,12 +28,19 @@
             HashSet<string> resultIdsForQuery = new HashSet<string>();
 
             int cumulativeTruePositive = 0;
+            int emptyQueryCount = 0;
             var queryIds = queryResults.Keys;
             foreach(string queryId in queryResults.Keys)
             {
                 groundTruthIdsForQuery.Clear();
                 resultIdsForQuery.Clear();
 
+                // 
+                if (queryResults[queryId].Count ==0 ) {
+                    Console.WriteLine($"Query result is empty for queryId: {queryId}");
+                    emptyQueryCount++;
+                    continue;
+                }
                 // for filter search, there might have less than K results
                 for (int i = 0; i < queryResults[queryId].Count; i++)
                 {
@@ -47,7 +54,7 @@
                     {
                         // -1 filled for non reuslt.
                         Console.WriteLine($"Ground truth id is -1 for queryId: {queryId} at {i}/K");
-                        //cumulativeTruePositive++;
+                        cumulativeTruePositive++;
                     }
                 }
 
@@ -76,11 +83,13 @@
                 }
             }
 
+            cumulativeTruePositive += emptyQueryCount * queryKValue;
+
             Console.WriteLine($"Recall Stats: " +
                 $"Cumulative True Positive: {cumulativeTruePositive}, " +
-                $"NumQueries: {queryResults.Count}, KValue: {queryKValue}, GroundTruthKValue: {groundTruthKValue}");
+                $"NumQueries: {queryResults.Count}, EmptyQuries: {emptyQueryCount} KValue: {queryKValue},  GroundTruthKValue: {groundTruthKValue}");
 
-            float averageHitsAcrossQueries = ((cumulativeTruePositive * 1.0f) / queryResults.Count);
+            float averageHitsAcrossQueries = ((cumulativeTruePositive * 1.0f) / (queryResults.Count));
             recall = (averageHitsAcrossQueries / queryKValue) * 100.0f;
             return recall;
         }
