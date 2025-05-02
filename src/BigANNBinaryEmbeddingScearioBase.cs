@@ -77,7 +77,7 @@ namespace VectorIndexScenarioSuite
                     Console.WriteLine($"- {value}");
                 }
 
-                throw new ArgumentException("VectorIndexType invalid!");
+                throw new ArgumentException($"VectorIndexType invalid! you input is {vectorIndexTypeString} ");
 
             }
 
@@ -307,7 +307,7 @@ JsonDocumentFactory.GetQueryAsync(dataPath, BinaryDataType.Float32, 0 /* startVe
             // empty json object for using default value if multiplier is 0
             string obj_expr = searchListSizeMultiplier == 0 ? "{}" : $"{{ 'searchListSizeMultiplier': {searchListSizeMultiplier} }}";
             string queryText = $"SELECT TOP {K} c.id, VectorDistance(c.{this.EmbeddingColumn}, @vectorEmbedding) AS similarityScore " +
-                $"FROM c {whereClause} ORDER BY VectorDistance(c.{this.EmbeddingColumn}, @vectorEmbedding, false, {obj_expr})";
+                $"FROM c {whereClause} ORDER BY VectorDistance(c.{this.EmbeddingColumn}, @vectorEmbedding, true, {obj_expr})";
             return new QueryDefinition(queryText).WithParameter("@vectorEmbedding", queryVector);
 
         }
