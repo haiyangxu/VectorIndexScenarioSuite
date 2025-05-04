@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 	<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-	<Configurations>Debug;Release;release2;qflat;qflatwithlabel</Configurations>
+	<Configurations>Debug;Release;release2;qflat;qflatwithlabel;qflatlabelquery</Configurations>
   </PropertyGroup>
   <PropertyGroup>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>

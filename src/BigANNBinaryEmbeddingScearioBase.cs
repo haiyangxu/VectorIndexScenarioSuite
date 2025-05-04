@@ -303,11 +303,26 @@ JsonDocumentFactory.GetQueryAsync(dataPath, BinaryDataType.Float32, 0 /* startVe
         private QueryDefinition ConstructQueryDefinition(int K, float[] queryVector, string whereClause)
         {
             int searchListSizeMultiplier = Convert.ToInt32(this.Configurations["AppSettings:scenario:searchListSizeMultiplier"]);
+            string where_overrides = this.Configurations["AppSettings:scenario:whereOverrides"];
+            if (!string.IsNullOrEmpty(where_overrides))
+            {
+
+                whereClause = $"where {where_overrides}".Replace('-', ' ');
+            }
+
+            string bruteforce = "false";
+            if (Convert.ToBoolean(this.Configurations["AppSettings:scenario:bruteforce"]))
+            {
+                bruteforce = "true";
+            }
 
             // empty json object for using default value if multiplier is 0
             string obj_expr = searchListSizeMultiplier == 0 ? "{}" : $"{{ 'searchListSizeMultiplier': {searchListSizeMultiplier} }}";
             string queryText = $"SELECT TOP {K} c.id, VectorDistance(c.{this.EmbeddingColumn}, @vectorEmbedding) AS similarityScore " +
-                $"FROM c {whereClause} ORDER BY VectorDistance(c.{this.EmbeddingColumn}, @vectorEmbedding, true, {obj_expr})";
+                $"FROM c {whereClause} ORDER BY VectorDistance(c.{this.EmbeddingColumn}, @vectorEmbedding, {bruteforce}, {obj_expr})";
+
+            Console.WriteLine($"Using where clause from config: {queryText}");
+
             return new QueryDefinition(queryText).WithParameter("@vectorEmbedding", queryVector);
 
         }
