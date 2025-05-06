@@ -53,6 +53,8 @@ namespace VectorIndexScenarioSuite
 
         protected Container CosmosContainerForQuery { get; set; }
 
+        protected Container QflatContainerForQuery { get; set; }
+
         protected int[] K_VALS { get; set; } 
 
         public Scenario(IConfiguration configurations, int throughput)
@@ -65,6 +67,7 @@ namespace VectorIndexScenarioSuite
 
             //Always query with non-bulk client to measure latency appropriately
             this.CosmosContainerForQuery = CreateOrGetCollection(throughput, false /* bulkClient */);
+            this.QflatContainerForQuery = GetQflatCollection(throughput, false /* bulkClient */);
         }
 
         public abstract void Setup();
@@ -95,6 +98,19 @@ namespace VectorIndexScenarioSuite
             return container;
         }
 
+        protected Container GetQflatCollection(int throughput, bool bulkClient)
+        {
+            string containerId =
+                this.Configurations["AppSettings:qflatContainerId"] ?? throw new ArgumentNullException("qflatContainerId");
+            CosmosClient cosmosClient = CreateCosmosClient(bulkClient);
+
+            ContainerProperties containerProperties = GetContainerSpec(containerId);
+            Database database = cosmosClient.CreateDatabaseIfNotExistsAsync(this.Configurations["AppSettings:cosmosDatabaseId"]).Result;
+            Container container = database.CreateContainerIfNotExistsAsync(containerProperties).Result;
+            return container;
+        }
+
+
         protected async void ReplaceFinalThroughput(int throughput)
         {
             string final_RU = this.Configurations["AppSettings:cosmosContainerRUFinal"] ?? throw new ArgumentNullException("cosmosContainerRUFinal");
@@ -123,12 +139,13 @@ namespace VectorIndexScenarioSuite
         {
             CosmosClientOptions cosmosClientOptions = new()
             {
+                RequestTimeout = TimeSpan.FromSeconds(5),
                 ConnectionMode = ConnectionMode.Direct,
                 AllowBulkExecution = bulkExecution,
                 // SDK will handle throttles and also wait for the amount of time the service tells it to wait and retry after the time has elapsed.
                 // Please see : https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-migrate-from-bulk-executor-library
-                MaxRetryAttemptsOnRateLimitedRequests = 100,
-                MaxRetryWaitTimeOnRateLimitedRequests = TimeSpan.FromSeconds(600)
+                MaxRetryAttemptsOnRateLimitedRequests = 0,
+                MaxRetryWaitTimeOnRateLimitedRequests = TimeSpan.FromSeconds(5)
             };
 
             bool useAADAuth = Convert.ToBoolean(this.Configurations["AppSettings:useAADAuth"]);

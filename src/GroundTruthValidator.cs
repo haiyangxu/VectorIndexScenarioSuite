@@ -66,6 +66,11 @@
                     this.groundTruth[queryId][tieBreaker].SimilarityScore == this.groundTruth[queryId][queryKValue - 1].SimilarityScore)
                 {
                     tieBreaker++;
+
+                    if (tieBreaker >= this.groundTruth[queryId].Count)
+                    {
+                        break;
+                    }
                 }
                 for (int i = 0; i < tieBreaker; i++)
                 {

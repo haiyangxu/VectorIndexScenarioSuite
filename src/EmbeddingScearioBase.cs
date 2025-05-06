@@ -225,11 +225,22 @@ namespace VectorIndexScenarioSuite
                 JsonDocumentFactory<byte>.GetQueryAsync(dataPath, 0 /* startVectorId */, numQueries, this.IsFilterSearch))
             {
 
+                var countQueryDefinition = ConstructSeletiveQueryDefinition(whereClause);
                 var queryDefinition = ConstructQueryDefinition(KVal, vector, whereClause);
                 bool retryQueryOnFailureForLatencyMeasurement;
                 do
                 {
-                    FeedIterator<IdWithSimilarityScore> queryResultSetIterator =
+                    // get selective count of the documents to be queried
+                    var response = await this.CosmosContainerForQuery.GetItemQueryIterator<int>(countQueryDefinition,
+                        requestOptions: new QueryRequestOptions { MaxConcurrency = maxConcurrancy }).ReadNextAsync();
+
+                    var count = response.FirstOrDefault();
+                    int selectiveThreshold = Convert.ToInt32(this.Configurations["AppSettings:scenario:selectiveThreshold"]);
+
+                    Console.WriteLine($"Count for vectorId {vectorId} is {count}. threshold is {selectiveThreshold}") ;
+                    // if the count is less than selectiveThreshold, use the Qflat container for query
+                    FeedIterator<IdWithSimilarityScore> queryResultSetIterator = count < selectiveThreshold ? this.QflatContainerForQuery.GetItemQueryIterator<IdWithSimilarityScore>(queryDefinition,
+                requestOptions: new QueryRequestOptions { MaxConcurrency = maxConcurrancy }) :
                         this.CosmosContainerForQuery.GetItemQueryIterator<IdWithSimilarityScore>(queryDefinition,
                 requestOptions: new QueryRequestOptions { MaxConcurrency = maxConcurrancy });
 
@@ -316,6 +327,14 @@ namespace VectorIndexScenarioSuite
             string queryText = $"SELECT TOP {K} c.id, VectorDistance(c.{this.EmbeddingColumn}, @vectorEmbedding) AS similarityScore " +
                 $"FROM c {whereClause} ORDER BY VectorDistance(c.{this.EmbeddingColumn}, @vectorEmbedding, false, {obj_expr})";
             return new QueryDefinition(queryText).WithParameter("@vectorEmbedding", queryVectorInt);
+
+        }
+
+        private QueryDefinition ConstructSeletiveQueryDefinition(string whereClause)
+        {
+            string queryText = $"SELECT VALUE count(1)" +
+                $"FROM c {whereClause} ";
+            return new QueryDefinition(queryText);
 
         }
 
