@@ -139,7 +139,7 @@ namespace VectorIndexScenarioSuite
         {
             CosmosClientOptions cosmosClientOptions = new()
             {
-                RequestTimeout = TimeSpan.FromSeconds(5),
+               // RequestTimeout = TimeSpan.FromSeconds(1),
                 ConnectionMode = ConnectionMode.Direct,
                 AllowBulkExecution = bulkExecution,
                 // SDK will handle throttles and also wait for the amount of time the service tells it to wait and retry after the time has elapsed.
