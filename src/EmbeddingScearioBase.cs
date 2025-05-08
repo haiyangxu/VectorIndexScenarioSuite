@@ -236,16 +236,20 @@ namespace VectorIndexScenarioSuite
 
                     var count = response.FirstOrDefault();
                     int selectiveThreshold = Convert.ToInt32(this.Configurations["AppSettings:scenario:selectiveThreshold"]);
-
-                  //   Console.WriteLine($"Count for vectorId {vectorId} is {count}. threshold is {selectiveThreshold}") ;
-                   // Console.WriteLine($"where clause is {whereClause}");
+                    if (count < 1001)
+                    {
+                        break;
+                    }
+                    // Console.WriteLine($"where clause is {whereClause}");
                     //Console.WriteLine($"vectors is {string.Join(",", vector)}");
                     // if the count is less than selectiveThreshold, use the Qflat container for query
-                    FeedIterator<IdWithSimilarityScore> queryResultSetIterator = count < selectiveThreshold ? this.QflatContainerForQuery.GetItemQueryIterator<IdWithSimilarityScore>(queryDefinition,
+                    FeedIterator<IdWithSimilarityScore> queryResultSetIterator =  this.CosmosContainerForQuery.GetItemQueryIterator<IdWithSimilarityScore>(queryDefinition,
+                requestOptions: new QueryRequestOptions { MaxConcurrency = maxConcurrancy });
+                   /* FeedIterator<IdWithSimilarityScore> queryResultSetIterator = count < selectiveThreshold ? this.QflatContainerForQuery.GetItemQueryIterator<IdWithSimilarityScore>(queryDefinition,
                 requestOptions: new QueryRequestOptions { MaxConcurrency = maxConcurrancy }) :
                         this.CosmosContainerForQuery.GetItemQueryIterator<IdWithSimilarityScore>(queryDefinition,
                 requestOptions: new QueryRequestOptions { MaxConcurrency = maxConcurrancy });
-
+                   */
                     retryQueryOnFailureForLatencyMeasurement = false;
                     while (queryResultSetIterator.HasMoreResults)
                     {
@@ -301,6 +305,8 @@ namespace VectorIndexScenarioSuite
                                     // this is total server latency
                                     //this.queryMetrics[KVal].AddServerLatencyMeasurement(
                                     //    queryResponse.Diagnostics.GetQueryMetrics().CumulativeMetrics.TotalTime.TotalMilliseconds);
+                                    Console.WriteLine($"{vectorId},{count},{queryResponse.Diagnostics.GetQueryMetrics().CumulativeMetrics.TotalTime.TotalMilliseconds}");
+
                                 }
                             }
                         }

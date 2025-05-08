@@ -37,7 +37,7 @@
 
                 // 
                 if (queryResults[queryId].Count ==0 ) {
-                    Console.WriteLine($"Query result is empty for queryId: {queryId}");
+                    //Console.WriteLine($"Query result is empty for queryId: {queryId}");
                     emptyQueryCount++;
                     continue;
                 }

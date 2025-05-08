@@ -43,6 +43,7 @@ namespace VectorIndexScenarioSuite
         /* Known Slices */
         protected const int HUNDRED_THOUSAND = 100000;
         protected const int ONE_MILLION =  1000000;
+        protected const int FIVE_MILLION = 5000000;
         protected const int TEN_MILLION = 10000000;
         protected const int THIRTY_FIVE_MILLION = 35000000;
         protected const int ONE_HUNDRED_MILLION = 100000000;
@@ -144,8 +145,8 @@ namespace VectorIndexScenarioSuite
                 AllowBulkExecution = bulkExecution,
                 // SDK will handle throttles and also wait for the amount of time the service tells it to wait and retry after the time has elapsed.
                 // Please see : https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-migrate-from-bulk-executor-library
-                MaxRetryAttemptsOnRateLimitedRequests = 0,
-                MaxRetryWaitTimeOnRateLimitedRequests = TimeSpan.FromSeconds(5)
+                MaxRetryAttemptsOnRateLimitedRequests = 100,
+                MaxRetryWaitTimeOnRateLimitedRequests = TimeSpan.FromSeconds(600)
             };
 
             bool useAADAuth = Convert.ToBoolean(this.Configurations["AppSettings:useAADAuth"]);

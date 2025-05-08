@@ -40,6 +40,8 @@ namespace VectorIndexScenarioSuite.filtersearch
             {
                 case HUNDRED_THOUSAND:
                 case ONE_MILLION:
+                case FIVE_MILLION:
+                case TEN_MILLION:
                     return (6000, 10000);
                 default:
                     throw new ArgumentException("Invalid slice count.");
