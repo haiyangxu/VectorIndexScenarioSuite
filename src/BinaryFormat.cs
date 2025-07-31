@@ -160,7 +160,7 @@ namespace VectorIndexScenarioSuite
                         await fileStream.ReadAsync(buffer, 0, Marshal.SizeOf<T>());
                         vector[d] = MemoryMarshal.Read<T>(buffer); // Convert the buffer to the generic type T
                     }
-                    var line = await labelreader.ReadLineAsync();
+                    var line = await labelreader.ReadLineAsync() ?? string.Empty;
 
                     yield return (currentId, vector, line);
                 }

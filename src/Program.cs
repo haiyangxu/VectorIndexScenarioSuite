@@ -5,7 +5,7 @@ using VectorIndexScenarioSuite.filtersearch;
 
 namespace VectorIndexScenarioSuite
 {
-    internal class Program
+    public class Program
     {
         static async Task Main(string[] args)
         {
@@ -49,7 +49,7 @@ namespace VectorIndexScenarioSuite
             }
         }
 
-        static void TraceConfigKeyValues(IConfiguration configurations)
+        public static void TraceConfigKeyValues(IConfiguration configurations)
         {
             Console.WriteLine("Executing VectorIndexScenarioSuite.");
             foreach (var configuration in configurations.AsEnumerable())
@@ -58,7 +58,7 @@ namespace VectorIndexScenarioSuite
             }
         }
 
-        static Scenario CreateScenario(IConfiguration configurations)
+        public static Scenario CreateScenario(IConfiguration configurations)
         {
             string scenarioName = configurations["AppSettings:scenario:name"] ?? throw new ArgumentNullException("AppSettings:scenario:name");
             Scenarios scenarios = ScenarioParser.Parse(scenarioName);
