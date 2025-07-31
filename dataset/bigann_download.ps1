@@ -63,7 +63,7 @@ function CreateSlice {
     $writer.Close()
 }
 
-$basePath = Resolve-Path -Path $destinationFolder\base.1B_1000000000.u8bin
+$basePath = Resolve-Path -Path $destinationFolder\base_1000000000.u8bin
 
 # Generate 10M Slice
 $new10MSlicePath = Join-Path $destinationFolder "base_10000000.u8bin"
