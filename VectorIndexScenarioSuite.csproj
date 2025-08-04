@@ -43,7 +43,7 @@
     </None>        
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="src\EmbeddingScearioBase.cs" />
+    <Compile Include="src\EmbeddingScenarioBase.cs" />
     <Compile Include="src\BinaryFormat.cs" />
     <Compile Include="src\EmbeddingDocumentBase.cs" />
     <Compile Include="src\GroundTruthValidator.cs" />
