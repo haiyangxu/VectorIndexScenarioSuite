@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 namespace VectorIndexScenarioSuite
 {
     /*
-     * Parser for BigANNBinaryFormat.
+     * Parser for BinaryFormat.
      * Please see: https://big-ann-benchmarks.com/neurips21.html#bench-datasets for format details.
      */
     internal class BinaryFormat

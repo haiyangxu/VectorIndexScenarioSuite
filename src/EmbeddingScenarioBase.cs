@@ -6,7 +6,7 @@ using System.Collections.ObjectModel;
 namespace VectorIndexScenarioSuite
 {
 
-    abstract class EmbeddingScearioBase<T>  : Scenario where T : unmanaged
+    abstract class EmbeddingScenarioBase<T>  : Scenario where T : unmanaged
     {
         protected abstract string BaseDataFile { get; }
         protected int SliceCount { get; set; }
@@ -35,7 +35,7 @@ namespace VectorIndexScenarioSuite
 
         protected ScenarioMetrics ingestionMetrics;
 
-        public EmbeddingScearioBase(IConfiguration configurations, int throughPut) : 
+        public EmbeddingScenarioBase(IConfiguration configurations, int throughPut) : 
             base(configurations, throughPut)
         {
             this.SliceCount = Convert.ToInt32(configurations["AppSettings:scenario:sliceCount"]);
@@ -221,8 +221,8 @@ namespace VectorIndexScenarioSuite
             // Issue parallel queries to all partitions, capping this to MAX_PHYSICAL_PARTITION_COUNT but can be override through config.
             int overrideMaxConcurrancy = Convert.ToInt32(this.Configurations["AppSettings:scenario:MaxPhysicalPartitionCount"]);
             int maxConcurrancy = overrideMaxConcurrancy == 0 ? this.MaxPhysicalPartitionCount : overrideMaxConcurrancy;
-            await foreach ((int vectorId, byte[] vector, string whereClause) in
-                JsonDocumentFactory<byte>.GetQueryAsync(dataPath, 0 /* startVectorId */, numQueries, this.IsFilterSearch))
+            await foreach ((int vectorId, T[] vector, string whereClause) in
+                JsonDocumentFactory<T>.GetQueryAsync(dataPath, 0 /* startVectorId */, numQueries, this.IsFilterSearch))
             {
 
                 var queryDefinition = ConstructQueryDefinition(KVal, vector, whereClause);
@@ -300,12 +300,11 @@ namespace VectorIndexScenarioSuite
             }
         }
 
-        // HARD CODED FOR BYTE
-        private QueryDefinition ConstructQueryDefinition(int K, byte[] queryVector, string whereClause)
+        private QueryDefinition ConstructQueryDefinition(int K, T[] queryVector, string whereClause)
         {
             int searchListSizeMultiplier = Convert.ToInt32(this.Configurations["AppSettings:scenario:searchListSizeMultiplier"]);
 
-            int[] queryVectorInt = queryVector.Select(b => (int)b)
+            int[] queryVectorInt = queryVector.Select(element => Convert.ToInt32(element))
                 .ToArray();
             // empty json object for using default value if multiplier is 0
             string obj_expr = searchListSizeMultiplier == 0 ? "{}" : $"{{ 'searchListSizeMultiplier': {searchListSizeMultiplier} }}";
