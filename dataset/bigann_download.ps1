@@ -56,7 +56,7 @@ function CreateSlice {
     $writer.Write($dim) # Dimensions
 
     for ($i = 0; $i -lt $numVectors; $i++) {
-        $writer.Write($reader.ReadBytes($dim * 1)) # Each vector elementr is a uint8 (1 byte)
+        $writer.Write($reader.ReadBytes($dim * 1)) # Each vector element is a uint8 (1 byte)
     }
 
     $reader.Close()
