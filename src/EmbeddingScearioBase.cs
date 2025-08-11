@@ -204,8 +204,8 @@ namespace VectorIndexScenarioSuite
             // Issue parallel queries to all partitions, capping this to MAX_PHYSICAL_PARTITION_COUNT but can be override through config.
             int overrideMaxConcurrancy = Convert.ToInt32(this.Configurations["AppSettings:scenario:MaxPhysicalPartitionCount"]);
             int maxConcurrancy = overrideMaxConcurrancy == 0 ? this.MaxPhysicalPartitionCount : overrideMaxConcurrancy;
-            await foreach ((int vectorId, byte[] vector, string whereClause) in
-                JsonDocumentFactory<byte>.GetQueryAsync(dataPath, 0 /* startVectorId */, numQueries, this.IsFilterSearch))
+            await foreach ((int vectorId, T[] vector, string whereClause) in
+                JsonDocumentFactory<T>.GetQueryAsync(dataPath, 0 /* startVectorId */, numQueries, this.IsFilterSearch))
             {
 
                 var queryDefinition = ConstructQueryDefinition(KVal, vector, whereClause);
@@ -283,19 +283,34 @@ namespace VectorIndexScenarioSuite
             }
         }
 
-        // HARD CODED FOR BYTE
-        private QueryDefinition ConstructQueryDefinition(int K, byte[] queryVector, string whereClause)
+        private static Array ToJsonFriendlyArray(T[] vector)
+        {
+            if (typeof(T) == typeof(byte))
+            {
+                var bytes = (byte[])(object)vector;
+                return Array.ConvertAll(bytes, static b => (int)b);
+            }
+
+            if (typeof(T) == typeof(sbyte))
+            {
+                var sbytes = (sbyte[])(object)vector;
+                return Array.ConvertAll(sbytes, static b => (int)b);
+            }
+
+            return vector;
+        }
+
+        private QueryDefinition ConstructQueryDefinition(int K, T[] queryVector, string whereClause)
         {
             int searchListSizeMultiplier = Convert.ToInt32(this.Configurations["AppSettings:scenario:searchListSizeMultiplier"]);
 
-            int[] queryVectorInt = queryVector.Select(b => (int)b)
-                .ToArray();
+            object vectorEmbeddingParam = ToJsonFriendlyArray(queryVector);
+
             // empty json object for using default value if multiplier is 0
             string obj_expr = searchListSizeMultiplier == 0 ? "{}" : $"{{ 'searchListSizeMultiplier': {searchListSizeMultiplier} }}";
             string queryText = $"SELECT TOP {K} c.id, VectorDistance(c.{this.EmbeddingColumn}, @vectorEmbedding) AS similarityScore " +
                 $"FROM c {whereClause} ORDER BY VectorDistance(c.{this.EmbeddingColumn}, @vectorEmbedding, false, {obj_expr})";
-            return new QueryDefinition(queryText).WithParameter("@vectorEmbedding", queryVectorInt);
-
+            return new QueryDefinition(queryText).WithParameter("@vectorEmbedding", vectorEmbeddingParam);
         }
 
         private string GetBaseDataPath()
