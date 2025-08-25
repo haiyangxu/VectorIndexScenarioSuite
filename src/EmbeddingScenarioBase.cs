@@ -5,11 +5,7 @@ using System.Collections.ObjectModel;
 namespace VectorIndexScenarioSuite
 {
 
-<<<<<<<< HEAD:src/EmbeddingScearioBase.cs
-    abstract class EmbeddingScearioBase<T>  : Scenario where T : unmanaged
-========
-    abstract class EmbeddingScenarioBase<T>  : Scenario where T : unmanaged
->>>>>>>> main:src/EmbeddingScenarioBase.cs
+    abstract class EmbeddingScenarioBase<T> : Scenario where T : unmanaged
     {
         protected abstract string BaseDataFile { get; }
         protected int SliceCount { get; set; }
@@ -25,7 +21,7 @@ namespace VectorIndexScenarioSuite
         protected abstract int MaxPhysicalPartitionCount { get; }
         protected abstract string RunName { get; }
         protected static Guid guid = Guid.NewGuid();
-        protected virtual bool IsFilterSearch {  get; } = false;
+        protected virtual bool IsFilterSearch { get; } = false;
 
         /* Map 'K' -> Neighbor Results
          * Neighbor Results:
@@ -38,22 +34,18 @@ namespace VectorIndexScenarioSuite
 
         protected ScenarioMetrics ingestionMetrics;
 
-<<<<<<<< HEAD:src/EmbeddingScearioBase.cs
-        public EmbeddingScearioBase(IConfiguration configurations, int throughPut) : 
-========
-        public EmbeddingScenarioBase(IConfiguration configurations, int throughPut) : 
->>>>>>>> main:src/EmbeddingScenarioBase.cs
+        public EmbeddingScenarioBase(IConfiguration configurations, int throughPut) :
             base(configurations, throughPut)
         {
             this.SliceCount = Convert.ToInt32(configurations["AppSettings:scenario:sliceCount"]);
             this.queryRecallResults = new ConcurrentDictionary<int, ConcurrentDictionary<string, List<IdWithSimilarityScore>>>();
             this.queryMetrics = new ConcurrentDictionary<int, ScenarioMetrics>();
 
-            this.K_VALS = configurations.GetSection("AppSettings:scenario:kValues").Get<int[]>() ?? 
+            this.K_VALS = configurations.GetSection("AppSettings:scenario:kValues").Get<int[]>() ??
                 throw new ArgumentNullException("AppSettings:scenario:kValues");
             this.ingestionMetrics = new ScenarioMetrics(0);
 
-            for(int kI = 0; kI < K_VALS.Length; kI++)
+            for (int kI = 0; kI < K_VALS.Length; kI++)
             {
                 this.queryRecallResults.TryAdd(K_VALS[kI], new ConcurrentDictionary<string, List<IdWithSimilarityScore>>());
                 this.queryMetrics.TryAdd(K_VALS[kI], new ScenarioMetrics(0));
@@ -62,7 +54,7 @@ namespace VectorIndexScenarioSuite
 
         protected string GetQueryDataPath()
         {
-            string directory = this.Configurations["AppSettings:dataFilesBasePath"] ?? 
+            string directory = this.Configurations["AppSettings:dataFilesBasePath"] ??
                 throw new ArgumentNullException("AppSettings:dataFilesBasePath");
             string fileName = $"{this.QueryFile}.{this.BinaryFileExt}";
             return Path.Combine(directory, fileName);
@@ -84,11 +76,11 @@ namespace VectorIndexScenarioSuite
                 }
                 vectorIndexPath.QuantizationByteSize = quantizationByteSize;
             }
-            
+
             bool enableShardedDiskAnn = Convert.ToBoolean(this.Configurations["AppSettings:scenario:sharded:enableShardedDiskANN"]);
             if (enableShardedDiskAnn)
             {
-                string shardKey = this.Configurations["AppSettings:scenario:sharded:vectorIndexShardKey"]  ?? throw new ArgumentNullException("AppSettings:scenario:sharded:vectorIndexShardKey");
+                string shardKey = this.Configurations["AppSettings:scenario:sharded:vectorIndexShardKey"] ?? throw new ArgumentNullException("AppSettings:scenario:sharded:vectorIndexShardKey");
                 vectorIndexPath.VectorIndexShardKey = [shardKey];
             }
 
@@ -110,10 +102,10 @@ namespace VectorIndexScenarioSuite
                     {
                         vectorIndexPath
                     }
-                }                
+                }
             };
 
-            properties.IndexingPolicy.IncludedPaths.Add(new IncludedPath{ Path = "/" });
+            properties.IndexingPolicy.IncludedPaths.Add(new IncludedPath { Path = "/" });
 
             // Add EMBEDDING_PATH to excluded paths for scalar indexing.
             properties.IndexingPolicy.ExcludedPaths.Add(new ExcludedPath { Path = this.EmbeddingPath + "/*" });
@@ -148,7 +140,7 @@ namespace VectorIndexScenarioSuite
         {
             // The batches that the SDK creates to optimize throughput have a current maximum of 2Mb or 100 operations per batch, 
             List<Task> ingestTasks = new List<Task>(COSMOSDB_MAX_BATCH_SIZE);
-            string errorLogBasePath = this.Configurations["AppSettings:errorLogBasePath"] ?? 
+            string errorLogBasePath = this.Configurations["AppSettings:errorLogBasePath"] ??
                 throw new ArgumentNullException("AppSettings:errorLogBasePath");
             string logFilePath = Path.Combine(errorLogBasePath, $"{this.RunName}-ingest.log");
 
@@ -166,7 +158,7 @@ namespace VectorIndexScenarioSuite
                     document.Id = (startTagIdValue + (vectorId - startVectorId)).ToString();
                 }
 
-                var createTask = CreateIngestionOperationTask(ingestionOperationType,document).ContinueWith(async itemResponse =>
+                var createTask = CreateIngestionOperationTask(ingestionOperationType, document).ContinueWith(async itemResponse =>
                 {
                     if (!itemResponse.IsCompletedSuccessfully)
                     {
@@ -206,8 +198,6 @@ namespace VectorIndexScenarioSuite
             }
         }
 
-<<<<<<<< HEAD:src/EmbeddingScearioBase.cs
-========
         private async Task RetryFailedIds(IngestionOperationType ingestionOperationType, int? startTagId)
         {
             List<int> failedIds = PopulateFailedIdsFromFile();
@@ -249,7 +239,6 @@ namespace VectorIndexScenarioSuite
             return failedIds;
         }
 
->>>>>>>> main:src/EmbeddingScenarioBase.cs
         private Task<ItemResponse<EmbeddingDocumentBase<T>>> CreateIngestionOperationTask(IngestionOperationType ingestionOperationType, EmbeddingDocumentBase<T> document)
         {
             switch (ingestionOperationType)
@@ -274,13 +263,8 @@ namespace VectorIndexScenarioSuite
             // Issue parallel queries to all partitions, capping this to MAX_PHYSICAL_PARTITION_COUNT but can be override through config.
             int overrideMaxConcurrancy = Convert.ToInt32(this.Configurations["AppSettings:scenario:MaxPhysicalPartitionCount"]);
             int maxConcurrancy = overrideMaxConcurrancy == 0 ? this.MaxPhysicalPartitionCount : overrideMaxConcurrancy;
-<<<<<<<< HEAD:src/EmbeddingScearioBase.cs
-            await foreach ((int vectorId, byte[] vector, string whereClause) in
-                JsonDocumentFactory<byte>.GetQueryAsync(dataPath, 0 /* startVectorId */, numQueries, this.IsFilterSearch))
-========
             await foreach ((int vectorId, T[] vector, string whereClause) in
                 JsonDocumentFactory<T>.GetQueryAsync(dataPath, 0 /* startVectorId */, numQueries, this.IsFilterSearch))
->>>>>>>> main:src/EmbeddingScenarioBase.cs
             {
 
                 var queryDefinition = ConstructQueryDefinition(KVal, vector, whereClause);
@@ -298,10 +282,6 @@ namespace VectorIndexScenarioSuite
 
                         if (!isWarmup)
                         {
-                            // add an empty list for the vectorId if it doesn't exist before retrive the reulsts
-                            // for filter search there could be no results returned if the filters don't match any data
-                            this.queryRecallResults[KVal].TryAdd(vectorId.ToString(), new List<IdWithSimilarityScore>(KVal));
-
                             // If we are computing latency and RU stats, don't consider any query with failed requests (implies it was throttled).
                             bool computeLatencyAndRUStats = Convert.ToBoolean(this.Configurations["AppSettings:scenario:computeLatencyAndRUStats"]);
                             if (computeLatencyAndRUStats && queryResponse.Diagnostics.GetFailedRequestCount() > 0)
@@ -358,19 +338,10 @@ namespace VectorIndexScenarioSuite
                         Console.WriteLine($"Finished querying {percentage.ToString("F2")}% ");
                     }
                 }
-                while ( retryQueryOnFailureForLatencyMeasurement );
+                while (retryQueryOnFailureForLatencyMeasurement);
             }
         }
 
-<<<<<<<< HEAD:src/EmbeddingScearioBase.cs
-        // HARD CODED FOR BYTE
-        private QueryDefinition ConstructQueryDefinition(int K, byte[] queryVector, string whereClause)
-        {
-            int searchListSizeMultiplier = Convert.ToInt32(this.Configurations["AppSettings:scenario:searchListSizeMultiplier"]);
-
-            int[] queryVectorInt = queryVector.Select(b => (int)b)
-                .ToArray();
-========
         private QueryDefinition ConstructQueryDefinition(int K, T[] queryVector, string whereClause)
         {
             int searchListSizeMultiplier = Convert.ToInt32(this.Configurations["AppSettings:scenario:searchListSizeMultiplier"]);
@@ -380,22 +351,17 @@ namespace VectorIndexScenarioSuite
             {
                 throw new InvalidOperationException("Serialized query vector conversion returned null.");
             }
->>>>>>>> main:src/EmbeddingScenarioBase.cs
             // empty json object for using default value if multiplier is 0
             string obj_expr = searchListSizeMultiplier == 0 ? "{}" : $"{{ 'searchListSizeMultiplier': {searchListSizeMultiplier} }}";
             string queryText = $"SELECT TOP {K} c.id, VectorDistance(c.{this.EmbeddingColumn}, @vectorEmbedding) AS similarityScore " +
                 $"FROM c {whereClause} ORDER BY VectorDistance(c.{this.EmbeddingColumn}, @vectorEmbedding, false, {obj_expr})";
-<<<<<<<< HEAD:src/EmbeddingScearioBase.cs
-            return new QueryDefinition(queryText).WithParameter("@vectorEmbedding", queryVectorInt);
-========
             return new QueryDefinition(queryText).WithParameter("@vectorEmbedding", serializedVector);
->>>>>>>> main:src/EmbeddingScenarioBase.cs
 
         }
 
         private string GetBaseDataPath()
         {
-            string directory = this.Configurations["AppSettings:dataFilesBasePath"] ?? 
+            string directory = this.Configurations["AppSettings:dataFilesBasePath"] ??
                 throw new ArgumentNullException("AppSettings:dataFilesBasePath");
 
             string fileName = $"{this.BaseDataFile}_{this.SliceCount}.{this.BinaryFileExt}";
@@ -424,7 +390,7 @@ namespace VectorIndexScenarioSuite
 
         private void ComputeLatencyAndRUStats(bool runIngestion, bool runQuery)
         {
-            if(runIngestion)
+            if (runIngestion)
             {
                 Console.WriteLine($"Ingestion Metrics:");
                 Console.WriteLine($"RU Consumption: {this.ingestionMetrics.GetRequestUnitStatistics()}");
@@ -434,7 +400,7 @@ namespace VectorIndexScenarioSuite
             {
                 Console.WriteLine($"Query Metrics:");
 
-                for(int kI = 0; kI < K_VALS.Length; kI++)
+                for (int kI = 0; kI < K_VALS.Length; kI++)
                 {
                     int kVal = K_VALS[kI];
                     Console.WriteLine($"K = {kVal}");
@@ -449,43 +415,6 @@ namespace VectorIndexScenarioSuite
 
         protected async Task RunScenario()
         {
-<<<<<<<< HEAD:src/EmbeddingScearioBase.cs
-            /* Default with following steps :
-             * 1) Bulk Ingest 'scenario:slice' number of documents into Cosmos container.
-             * 2) Query Cosmos container for a query-set and calculate recall for Nearest Neighbor search.
-             */
-             bool runIngestion = Convert.ToBoolean(this.Configurations["AppSettings:scenario:runIngestion"]);
-
-            if(runIngestion) 
-            {
-                int totalVectors = Convert.ToInt32(this.Configurations["AppSettings:scenario:sliceCount"]);
-                int startVectorId = Convert.ToInt32(this.Configurations["AppSettings:scenario:startVectorId"]);
-                await PerformIngestion(IngestionOperationType.Insert, null /* startTagId */, startVectorId /* startVectorId */, totalVectors);
-            }
-
-            bool runQuery = Convert.ToBoolean(this.Configurations["AppSettings:scenario:runQuery"]);
-
-            if(runQuery)
-            {
-                bool performWarmup = Convert.ToBoolean(this.Configurations["AppSettings:scenario:warmup:enabled"]);
-                if (performWarmup)
-                {
-                    int numWarmupQueries = Convert.ToInt32(this.Configurations["AppSettings:scenario:warmup:numWarmupQueries"]);
-                    Console.WriteLine($"Performing {numWarmupQueries} queries for Warmup.");
-                    await PerformQuery(true /* isWarmup */, numWarmupQueries, 10 /*KVal*/, GetBaseDataPath());
-                }
-
-                int totalQueryVectors = BinaryFormat.GetBinaryDataHeader(GetQueryDataPath()).Item1;
-
-                // only query specific number of point if specific by the config
-                int numQueries = Convert.ToInt32(this.Configurations["AppSettings:scenario:numQueries"]);
-                numQueries = numQueries == 0 ? totalQueryVectors : numQueries;
-
-                for (int kI = 0; kI < K_VALS.Length; kI++)
-                {
-                    Console.WriteLine($"Performing {numQueries} queries for Recall/RU/Latency stats for K: {K_VALS[kI]}.");
-                    await PerformQuery(false /* isWarmup */, numQueries, K_VALS[kI] /*KVal*/, GetQueryDataPath());
-========
             bool onlyIngestFailedIds = Convert.ToBoolean(this.Configurations["AppSettings:onlyIngestFailedIds"]);
             if (onlyIngestFailedIds)
             {
@@ -520,7 +449,7 @@ namespace VectorIndexScenarioSuite
                         await PerformQuery(true /* isWarmup */, numWarmupQueries, 10 /*KVal*/, GetBaseDataPath());
                     }
 
-                int totalQueryVectors = BinaryFormat.GetBinaryDataHeader(GetQueryDataPath()).Item1;
+                    int totalQueryVectors = BinaryFormat.GetBinaryDataHeader(GetQueryDataPath()).Item1;
 
                     // only query specific number of point if specific by the config
                     int numQueries = Convert.ToInt32(this.Configurations["AppSettings:scenario:numQueries"]);
@@ -531,7 +460,6 @@ namespace VectorIndexScenarioSuite
                         Console.WriteLine($"Performing {numQueries} queries for Recall/RU/Latency stats for K: {K_VALS[kI]}.");
                         await PerformQuery(false /* isWarmup */, numQueries, K_VALS[kI] /*KVal*/, GetQueryDataPath());
                     }
->>>>>>>> main:src/EmbeddingScenarioBase.cs
                 }
             }
         }
@@ -564,167 +492,108 @@ namespace VectorIndexScenarioSuite
                 switch (operation.Name)
                 {
                     case "insert":
-<<<<<<<< HEAD:src/EmbeddingScearioBase.cs
-                    {
-                        int startVectorId = operation.Start ?? throw new MissingFieldException("Start missing for insert.");
-                        int endVectorId = operation.End ?? throw new MissingFieldException("End missing for insert.");
-                        int numVectors = (endVectorId - startVectorId);
-                        if (runIngestion && (operationId >= startOperationId))
                         {
-                            await PerformIngestion(IngestionOperationType.Insert, null /*startTagId */, startVectorId, numVectors);
-                        }
-
-                        totalVectorsInserted += numVectors;
-
-                        // Count insert step even if we skipped it as from runbook execution perspective, it was still done before.
-                        insertSteps++;
-                        break;
-                    }
-                    case "search":
-                    {  
-                        // No warmup logic added for now as this scenario is focused on recall.
-                        if (runQuery && (operationId >= startOperationId))
-                        {
-                            // Reset queryRecallResults for each step.
-                            // Query metrics are not reset as they are cumulative across steps.
-                            this.queryRecallResults = 
-                                    new ConcurrentDictionary<int, ConcurrentDictionary<string, List<IdWithSimilarityScore>>>();
-
-                            int totalQueryVectors = BinaryFormat.GetBinaryDataHeader(GetQueryDataPath()).Item1;
-                            for (int kI = 0; kI < K_VALS.Length; kI++)
+                            int startVectorId = operation.Start ?? throw new MissingFieldException("Start missing for insert.");
+                            int endVectorId = operation.End ?? throw new MissingFieldException("End missing for insert.");
+                            int numVectors = (endVectorId - startVectorId);
+                            if (runIngestion && (operationId >= startOperationId))
                             {
-                                Console.WriteLine($"Performing {totalQueryVectors} queries for Recall/RU/Latency stats for K: {K_VALS[kI]}.");
-                                this.queryRecallResults.TryAdd(K_VALS[kI], new ConcurrentDictionary<string, List<IdWithSimilarityScore>>());
-                                await PerformQuery(false /* isWarmup */, totalQueryVectors, K_VALS[kI] /*KVal*/, GetQueryDataPath());
+                                await PerformIngestion(IngestionOperationType.Insert, null /*startTagId */, startVectorId, numVectors);
                             }
 
-                            // Compute Recall
-                            bool computeRecall = Convert.ToBoolean(this.Configurations["AppSettings:scenario:computeRecall"]);
-                            if (computeRecall)
-                            {
-                                Console.WriteLine("Computing Recall.");
-                                GroundTruthValidator groundTruthValidator = new GroundTruthValidator(
-                                    GroundTruthFileType.Binary,
-                                    GetGroundTruthDataPath(operationId));
+                            totalVectorsInserted += numVectors;
 
+                            // Count insert step even if we skipped it as from runbook execution perspective, it was still done before.
+                            insertSteps++;
+                            break;
+                        }
+                    case "search":
+                        {
+                            // No warmup logic added for now as this scenario is focused on recall.
+                            if (runQuery && (operationId >= startOperationId))
+                            {
+                                // Reset queryRecallResults for each step.
+                                // Query metrics are not reset as they are cumulative across steps.
+                                this.queryRecallResults =
+                                        new ConcurrentDictionary<int, ConcurrentDictionary<string, List<IdWithSimilarityScore>>>();
+
+                                int totalQueryVectors = BinaryFormat.GetBinaryDataHeader(GetQueryDataPath()).Item1;
                                 for (int kI = 0; kI < K_VALS.Length; kI++)
                                 {
-                                    int kVal = K_VALS[kI];
-                                    float recall = groundTruthValidator.ComputeRecall(kVal, this.queryRecallResults[kVal]);
-
-                                    Console.WriteLine($"Recall for K = {kVal} is {recall}.");
+                                    Console.WriteLine($"Performing {totalQueryVectors} queries for Recall/RU/Latency stats for K: {K_VALS[kI]}.");
+                                    this.queryRecallResults.TryAdd(K_VALS[kI], new ConcurrentDictionary<string, List<IdWithSimilarityScore>>());
+                                    await PerformQuery(false /* isWarmup */, totalQueryVectors, K_VALS[kI] /*KVal*/, GetQueryDataPath());
                                 }
-                            }
-                        }
 
-                        // Count search step even if we skipped it as from runbook execution perspective, it was still done before.
-                        searchSteps++;
-                        break;
-                    }
-========
-                    {
-                        int startVectorId = operation.Start ?? throw new MissingFieldException("Start missing for insert.");
-                        int endVectorId = operation.End ?? throw new MissingFieldException("End missing for insert.");
-                        int numVectors = (endVectorId - startVectorId);
-                        if (runIngestion && (operationId >= startOperationId))
-                        {
-                            await PerformIngestion(IngestionOperationType.Insert, null /*startTagId */, startVectorId, numVectors);
-                        }
-
-                        totalVectorsInserted += numVectors;
-
-                        // Count insert step even if we skipped it as from runbook execution perspective, it was still done before.
-                        insertSteps++;
-                        break;
-                    }
-                    case "search":
-                    {
-                        // No warmup logic added for now as this scenario is focused on recall.
-                        if (runQuery && (operationId >= startOperationId))
-                        {
-                            // Reset queryRecallResults for each step.
-                            // Query metrics are not reset as they are cumulative across steps.
-                            this.queryRecallResults =
-                                    new ConcurrentDictionary<int, ConcurrentDictionary<string, List<IdWithSimilarityScore>>>();
-
-                            int totalQueryVectors = BinaryFormat.GetBinaryDataHeader(GetQueryDataPath()).Item1;
-                            for (int kI = 0; kI < K_VALS.Length; kI++)
-                            {
-                                Console.WriteLine($"Performing {totalQueryVectors} queries for Recall/RU/Latency stats for K: {K_VALS[kI]}.");
-                                this.queryRecallResults.TryAdd(K_VALS[kI], new ConcurrentDictionary<string, List<IdWithSimilarityScore>>());
-                                await PerformQuery(false /* isWarmup */, totalQueryVectors, K_VALS[kI] /*KVal*/, GetQueryDataPath());
-                            }
-
-                            // Compute Recall
-                            bool computeRecall = Convert.ToBoolean(this.Configurations["AppSettings:scenario:computeRecall"]);
-                            if (computeRecall)
-                            {
-                                Console.WriteLine("Computing Recall.");
-                                GroundTruthValidator groundTruthValidator = new GroundTruthValidator(
-                                    GroundTruthFileType.Binary,
-                                    GetGroundTruthDataPath(operationId));
-
-                                for (int kI = 0; kI < K_VALS.Length; kI++)
+                                // Compute Recall
+                                bool computeRecall = Convert.ToBoolean(this.Configurations["AppSettings:scenario:computeRecall"]);
+                                if (computeRecall)
                                 {
-                                    int kVal = K_VALS[kI];
-                                    float recall = groundTruthValidator.ComputeRecall(kVal, this.queryRecallResults[kVal]);
+                                    Console.WriteLine("Computing Recall.");
+                                    GroundTruthValidator groundTruthValidator = new GroundTruthValidator(
+                                        GroundTruthFileType.Binary,
+                                        GetGroundTruthDataPath(operationId));
 
-                                    Console.WriteLine($"Recall for K = {kVal} is {recall}.");
+                                    for (int kI = 0; kI < K_VALS.Length; kI++)
+                                    {
+                                        int kVal = K_VALS[kI];
+                                        float recall = groundTruthValidator.ComputeRecall(kVal, this.queryRecallResults[kVal]);
+
+                                        Console.WriteLine($"Recall for K = {kVal} is {recall}.");
+                                    }
                                 }
                             }
-                        }
 
-                        // Count search step even if we skipped it as from runbook execution perspective, it was still done before.
-                        searchSteps++;
-                        break;
-                    }
->>>>>>>> main:src/EmbeddingScenarioBase.cs
+                            // Count search step even if we skipped it as from runbook execution perspective, it was still done before.
+                            searchSteps++;
+                            break;
+                        }
                     case "delete":
-                    {
-                        int start = operation.Start ?? throw new MissingFieldException("Start missing for delete.");
-                        int end = operation.End ?? throw new MissingFieldException("End missing for delete.");
-                        int numVectors = (end - start);
-
-                        if (runIngestion && (operationId >= startOperationId))
                         {
-                            await PerformIngestion(IngestionOperationType.Delete, null /* startTagId */, start, numVectors);
-                        }
-                        totalVectorsDeleted += numVectors;
+                            int start = operation.Start ?? throw new MissingFieldException("Start missing for delete.");
+                            int end = operation.End ?? throw new MissingFieldException("End missing for delete.");
+                            int numVectors = (end - start);
 
-                        // Count delete step even if we skipped it as from runbook execution perspective, it was still done before.
-                        deleteSteps++;
-                        break;
-                    }
+                            if (runIngestion && (operationId >= startOperationId))
+                            {
+                                await PerformIngestion(IngestionOperationType.Delete, null /* startTagId */, start, numVectors);
+                            }
+                            totalVectorsDeleted += numVectors;
+
+                            // Count delete step even if we skipped it as from runbook execution perspective, it was still done before.
+                            deleteSteps++;
+                            break;
+                        }
                     case "replace":
-                    {
-                        int tagsStart = operation.TagsStart ?? throw new MissingFieldException("TagStart missing for replace.");
-                        int tagsEnd = operation.TagsEnd ?? throw new MissingFieldException("TagEnd missing for replace.");
-
-                        int vectorIdsStart = operation.IdsStart ?? throw new MissingFieldException("IdsStart missing for replace.");
-                        int vectorIdsEnd = operation.IdsEnd ?? throw new MissingFieldException("IdsEnd missing for replace.");
-
-                        int numVectors = (vectorIdsEnd - vectorIdsStart);
-                        int numTags = (tagsEnd - tagsStart);
-
-                        if (numTags != numVectors)
                         {
-                            throw new ArgumentException("Number of tags and vectors should be equal for replace operation.");
-                        }
+                            int tagsStart = operation.TagsStart ?? throw new MissingFieldException("TagStart missing for replace.");
+                            int tagsEnd = operation.TagsEnd ?? throw new MissingFieldException("TagEnd missing for replace.");
 
-                        if (runIngestion && (operationId >= startOperationId))
-                        {
-                            await PerformIngestion(IngestionOperationType.Replace, tagsStart, vectorIdsStart, numVectors);
-                        }
-                        totalVectorsReplaced += numVectors;
+                            int vectorIdsStart = operation.IdsStart ?? throw new MissingFieldException("IdsStart missing for replace.");
+                            int vectorIdsEnd = operation.IdsEnd ?? throw new MissingFieldException("IdsEnd missing for replace.");
 
-                        // Count replace step even if we skipped it as from runbook execution perspective, it was still done before.
-                        replaceSteps++;
-                        break;
-                    }
+                            int numVectors = (vectorIdsEnd - vectorIdsStart);
+                            int numTags = (tagsEnd - tagsStart);
+
+                            if (numTags != numVectors)
+                            {
+                                throw new ArgumentException("Number of tags and vectors should be equal for replace operation.");
+                            }
+
+                            if (runIngestion && (operationId >= startOperationId))
+                            {
+                                await PerformIngestion(IngestionOperationType.Replace, tagsStart, vectorIdsStart, numVectors);
+                            }
+                            totalVectorsReplaced += numVectors;
+
+                            // Count replace step even if we skipped it as from runbook execution perspective, it was still done before.
+                            replaceSteps++;
+                            break;
+                        }
                     default:
-                    {
-                        throw new InvalidOperationException($"Invalid operation {operation.Name} in runbook.");
-                    }
+                        {
+                            throw new InvalidOperationException($"Invalid operation {operation.Name} in runbook.");
+                        }
                 }
 
                 Console.WriteLine($"Executed Operation: {operation.Name} with OperationId: {operationId}");

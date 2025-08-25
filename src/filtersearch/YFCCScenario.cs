@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Configuration;
 namespace VectorIndexScenarioSuite.filtersearch
 { 
-    internal class YFCCScenario : EmbeddingScearioBase<byte>
+    internal class YFCCScenario : EmbeddingScenarioBase<byte>
     {
         protected override string BaseDataFile => "base";
         protected override string BinaryFileExt => "u8bin";
