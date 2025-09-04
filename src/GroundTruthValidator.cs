@@ -40,7 +40,7 @@
                     resultIdsForQuery.Add(queryResults[queryId][i].Id);
                 }
 
-                // for filter search, if the ground truth is -1, means there is no result
+                // for filter search, if the ground truth is -1, means there is no result for specific query
                 for (int i = queryResults[queryId].Count; i < queryKValue; i++)
                 {
                     if (this.groundTruth[queryId][i].Id == "-1")
