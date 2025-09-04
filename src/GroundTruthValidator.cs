@@ -45,7 +45,7 @@
                 {
                     if (this.groundTruth[queryId][i].Id == "-1")
                     {
-                        // -1 filled for non reuslt.
+                        // -1 filled for non result.
                         Console.WriteLine($"Ground truth id is -1 for queryId: {queryId} at {i}/K");
                         cumulativeTruePositive++;
                     }
