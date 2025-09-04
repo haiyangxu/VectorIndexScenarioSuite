@@ -55,7 +55,7 @@
                  * Handle scenario where multiple vectors have the same similarity score as the kth vector
                  */
                 int tieBreaker = queryKValue - 1;
-                while (this.groundTruth[queryId][tieBreaker].Id != "-1" &&tieBreaker < this.groundTruth[queryId].Count &&
+                while (this.groundTruth[queryId][tieBreaker].Id != "-1" && tieBreaker < this.groundTruth[queryId].Count &&
                     this.groundTruth[queryId][tieBreaker].SimilarityScore == this.groundTruth[queryId][queryKValue - 1].SimilarityScore)
                 {
                     tieBreaker++;
