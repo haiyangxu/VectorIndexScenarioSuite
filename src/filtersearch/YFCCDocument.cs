@@ -63,7 +63,7 @@ namespace VectorIndexScenarioSuite.filtersearch
         }
 
         // Function to create query_clause from query label
-        // query label format : CAT=ExteriorAccessories&RATING=4|RATING=5
+        // query label format : year=2014&month=06|month=07&camera=Nikon|camera=Canon&country=USA
         private static List<List<string>> FromQuery(string queryLabel)
         {
             var queryClause = new List<List<string>>();
