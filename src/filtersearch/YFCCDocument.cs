@@ -16,8 +16,8 @@ namespace VectorIndexScenarioSuite.filtersearch
         [JsonProperty(PropertyName = "country")]
         private string Country { get; }
 
-        // label format : 
-        // BRAND=Caltric,CAT=Automotive,CAT=MotorcyclePowersports,CAT=Parts,CAT=Filters,CAT=OilFilters,RATING=5
+        // label format :
+        // year=2020,month=05,camera=Canon EOS 5D,country=USA
         public YFCCDocument(string id, T[] embedding, string label)
             : base(id, embedding) // Call the base class constructor
         {
